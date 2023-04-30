@@ -1,0 +1,47 @@
+{
+    "swagger" : "2.0",
+    "info" : {
+      "version" : "2023-04-30T11:01:18Z",
+      "title" : "AccessLogApi"
+    },
+    "host" : "akxo8jq0o9.execute-api.ap-northeast-1.amazonaws.com",
+    "basePath" : "/api",
+    "schemes" : [ "https" ],
+    "paths" : {
+      "/" : {
+        "post" : {
+          "consumes" : [ "application/json" ],
+          "produces" : [ "application/json" ],
+          "responses" : {
+            "200" : {
+              "description" : "200 response",
+              "headers" : {
+                "Access-Control-Allow-Origin" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        },
+        "options" : {
+          "consumes" : [ "application/json" ],
+          "responses" : {
+            "204" : {
+              "description" : "204 response",
+              "headers" : {
+                "Access-Control-Allow-Origin" : {
+                  "type" : "string"
+                },
+                "Access-Control-Allow-Methods" : {
+                  "type" : "string"
+                },
+                "Access-Control-Allow-Headers" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }

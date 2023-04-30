@@ -1,0 +1,39 @@
+# クライアント側のサンプル
+
+## ビルド方法
+
+```{bash}
+npm install
+npx vite build
+```
+
+## 使用例
+
+```{html}
+<html>
+  <head>
+    <script src="../dist/analytics.umd.js"></script>
+    <script>
+      a = Analytics.fromDomain(
+        "https://akxo8jq0o9.execute-api.ap-northeast-1.amazonaws.com/api"
+      );
+      a.page();
+
+      const onTrack = () => {
+        a.track("button-clicked", {
+          price: 20,
+          item: "pinck socks",
+        });
+      };
+
+      const onIdentify = () => {
+        a.identify("user-id");
+      };
+    </script>
+  </head>
+  <body>
+    <button onclick="onTrack()">Track</button>
+    <button onclick="onIdentify()">Indetity</button>
+  </body>
+</html>
+```

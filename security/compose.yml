@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  api-scan:
+    image:  owasp/zap2docker-stable
+    volumes:
+      - ./:/zap/wrk:rw
+    command: ["zap-api-scan.py", "-t", "api.json", "-f", "openapi", "-w", "api-scan-report.md"]
