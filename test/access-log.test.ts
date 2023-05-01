@@ -10,6 +10,7 @@ test("AccessLogStack created", () => {
     crossOrigin: ["*"],
     intervalInSeconds: 60,
     sizeInMBs: 1,
+    athenaQueryResultBucketName: "test-athena-bucket"
   });
 
   expect(Template.fromStack(accessLogStack).toJSON).toMatchSnapshot();

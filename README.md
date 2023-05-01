@@ -49,13 +49,14 @@ Kinesis Firehose を API Gateway から直接呼び出す形とする。
 
 cdk.json
 
-| パラメータ名             | 説明                                             |
-| ------------------------ | ------------------------------------------------ |
-| `access-log-bucket-name` | バケット名(例: "access-log-bucket-123456789012") |
-| `access-log-stream-name` | ストリーム名(例: "access-log-stream")            |
-| `cross-origin`           | クロスオリジン設定 (例: ["*"])                   |
-| `interval-in-seconds`    | バッファサイズの間隔(例: 60)                     |
-| `buffer-size-in-mb`      | バッファサイズ(例: 1)                            |
+| パラメータ名                  | 説明                                                                                   |
+| ----------------------------- | -------------------------------------------------------------------------------------- |
+| `access-log-bucket-name`      | バケット名(例: "access-log-bucket-123456789012")                                       |
+| `access-log-stream-name`      | ストリーム名(例: "access-log-stream")                                                  |
+| `cross-origin`                | クロスオリジン設定 (例: ["*"])                                                         |
+| `interval-in-seconds`         | バッファサイズの間隔(例: 60)                                                           |
+| `buffer-size-in-mb`           | バッファサイズ(例: 1)                                                                  |
+| `athenaQueryResultBucketName` | Athena のクエリ結果を保存するバケット名(例: "athena-query-result-bucket-123456789012") |
 
 ### Stack 生成例
 
@@ -79,7 +80,7 @@ new AccessLogStack(app, "AccessLogStack", {
 
 ### アクセス解析データの取得
 
-AWS AThenaで、アクセス解析データを取得する。
+AWS AThena で、アクセス解析データを取得する。
 ただし、ワークグループは、`access_log` とする。
 
 ```{sql}
@@ -106,11 +107,11 @@ npm test
 
 #### API Gateway
 
-| 項目     | 説明           | 監視周期 | 設定                                                 |
-| -------- | -------------- | -------- | ---------------------------------------------------- |
-| 4XXError | 4XXの数 | 1 分間   | 監視しない。 |
-| 5XXError | 5XXの数 | 1 分間   | エラーは原則でないはずなので、1 回以上を閾値とする。 |
-| Count    | リクエスト数   | 1 分間   | 1 K リクエスト/秒。 80%を閾値とする。      |
+| 項目     | 説明         | 監視周期 | 設定                                                 |
+| -------- | ------------ | -------- | ---------------------------------------------------- |
+| 4XXError | 4XX の数     | 1 分間   | 監視しない。                                         |
+| 5XXError | 5XX の数     | 1 分間   | エラーは原則でないはずなので、1 回以上を閾値とする。 |
+| Count    | リクエスト数 | 1 分間   | 1 K リクエスト/秒。 80%を閾値とする。                |
 
 #### Kinesis Firehose
 
@@ -175,13 +176,13 @@ docker compose run api-scan
 
 以下より、システムの可用性は、99.7%程度とする。
 
-### API Gatewayの可用性
+### API Gateway の可用性
 
 99.95%
 
 [出典](https://aws.amazon.com/api-gateway/sla/?did=sla_card&trk=sla_card)
 
-### Kinesis Firehoseの可用性
+### Kinesis Firehose の可用性
 
 99.9%
 
@@ -217,7 +218,7 @@ docker compose run api-scan
 以下、東京リージョン(ap-northeast-1)でのクォータの例。
 特にクォータを引き上げずとも、1000 リクスト/秒までは可能。
 
-### API Gatewayのクォータ
+### API Gateway のクォータ
 
 アカウント・リージョンごとに以下のクォータがある。
 
@@ -225,7 +226,7 @@ docker compose run api-scan
 
 [出典](https://docs.aws.amazon.com/ja_jp/apigateway/latest/developerguide/limits.html)
 
-### Kinesis Firehoseのクォータ
+### Kinesis Firehose のクォータ
 
 - レコードサイズ: 100KiB
 - Direct PUT: 100k レコード/秒, 1k リクエスト/秒, 1 Mib/秒
