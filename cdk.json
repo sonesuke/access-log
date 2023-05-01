@@ -23,6 +23,7 @@
     "cross-origin": ["*"],
     "interval-in-seconds": 60,
     "size-in-mbs": 1,
+    "athena-query-result-bucket-name": "athena-query-result-123456789012",
 
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,

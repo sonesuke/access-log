@@ -4,6 +4,11 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as firehose from "aws-cdk-lib/aws-kinesisfirehose";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as apigw from "aws-cdk-lib/aws-apigateway";
+import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
+import * as cloudwatch_action from "aws-cdk-lib/aws-cloudwatch-actions";
+import * as sns from "aws-cdk-lib/aws-sns";
+import * as athena from "aws-cdk-lib/aws-athena";
+import * as glue from "@aws-cdk/aws-glue-alpha";
 
 export interface AccessLogStackProp extends cdk.StackProps {
   bucketName: string;
@@ -11,6 +16,7 @@ export interface AccessLogStackProp extends cdk.StackProps {
   crossOrigin: [string];
   intervalInSeconds: number;
   sizeInMBs: number;
+  athenaQueryResultBucketName: string;
 }
 
 export class AccessLogStack extends cdk.Stack {
@@ -49,8 +55,8 @@ export class AccessLogStack extends cdk.Stack {
       s3DestinationConfiguration: {
         bucketArn: bucket.bucketArn,
         bufferingHints: {
-          intervalInSeconds: 60,
-          sizeInMBs: 1,
+          intervalInSeconds: props.intervalInSeconds,
+          sizeInMBs: props.sizeInMBs,
         },
         compressionFormat: "GZIP",
         roleArn: kinesisRole.roleArn,
@@ -149,5 +155,120 @@ export class AccessLogStack extends cdk.Stack {
         methodResponses,
       }
     );
+
+    // add your email address to receive alarm
+    const topic = new sns.Topic(this, "AccessLogTopic", {
+      topicName: "AccessLogTopic",
+    });
+    //topic.addSubscription(new subs.EmailSubscription("your-email-address"));
+
+    // add alarm for API Gateway Quota
+    const apiCallAlarm = new cloudwatch.Alarm(
+      this,
+      "AccessLogAPIGatewayQuotaAlarm",
+      {
+        alarmName: "AccessLogAPIGatewayQuotaAlarm",
+        comparisonOperator:
+          cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        threshold: 60 * 1000 * 0.8,
+        evaluationPeriods: 1,
+        metric: new cloudwatch.Metric({
+          namespace: "AWS/ApiGateway",
+          metricName: "Count",
+          statistic: "Sum",
+          period: cdk.Duration.minutes(1),
+        }),
+      }
+    );
+    apiCallAlarm.addAlarmAction(new cloudwatch_action.SnsAction(topic));
+
+    // add alarm for API Gateway 5XX Error
+    const api5XXAlarm = new cloudwatch.Alarm(
+      this,
+      "AccessLogAPIGateway5XXAlarm",
+      {
+        alarmName: "AccessLogAPIGateway5XXAlarm",
+        comparisonOperator:
+          cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        threshold: 1,
+        evaluationPeriods: 1,
+        metric: api.metricServerError(),
+      }
+    );
+    api5XXAlarm.addAlarmAction(new cloudwatch_action.SnsAction(topic));
+
+    // add alarm for AWS Firehose Rate Limit
+    const rateLimitFirehoseAlarm = new cloudwatch.Alarm(
+      this,
+      "AccessLogRateLimitFirehoseAlarm",
+      {
+        alarmName: "AccessLogRateLimitFirehoseAlarm",
+        comparisonOperator: cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
+        threshold: 1000,
+        evaluationPeriods: 1,
+        metric: new cloudwatch.Metric({
+          namespace: "AWS/Firehose",
+          metricName: "PutRequestsPerSecondLimit",
+          dimensionsMap: {
+            DeliveryStreamName: props.streamName,
+          },
+          statistic: "Minimum",
+          period: cdk.Duration.minutes(1),
+        }),
+      }
+    );
+    rateLimitFirehoseAlarm.addAlarmAction(
+      new cloudwatch_action.SnsAction(topic)
+    );
+    // const athenaQueryResultBucket = new s3.Bucket(
+    //   this,
+    //   "AthenaQueryResultBucket",
+    //   {
+    //     bucketName: props.athenaQueryResultBucketName,
+    //     removalPolicy: cdk.RemovalPolicy.DESTROY,
+    //   }
+    // );
+
+    // const dataCatalog = new glue.Database(this, "AccessLogDataCatalog", {
+    //   databaseName: "access_log",
+    // });
+
+    // const sourceDataGlueTable = new glue.Table(
+    //   this,
+    //   "AccessLogSourceDataGlueTable",
+    //   {
+    //     tableName: "source_data",
+    //     database: dataCatalog,
+    //     columns: [
+    //       {
+    //         name: "time",
+    //         type: glue.Schema.TIMESTAMP,
+    //       },
+    //       {
+    //         name: "ip",
+    //         type: glue.Schema.STRING,
+    //       },
+    //       {
+    //         name: "data",
+    //         type: glue.Schema.STRING,
+    //       },
+    //     ],
+    //     dataFormat: glue.DataFormat.JSON,
+    //     bucket: bucket,
+    //   }
+    // );
+
+    // const athenaWorkGroup = new athena.CfnWorkGroup(
+    //   this,
+    //   "AccessLogAthenaWorkGroup",
+    //   {
+    //     name: "access_log",
+    //     workGroupConfiguration: {
+    //       resultConfiguration: {
+    //         outputLocation: `s3://${props.athenaQueryResultBucketName}/result-data`,
+    //       },
+    //     },
+    //   }
+    // );
   }
 }

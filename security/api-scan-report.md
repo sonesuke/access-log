@@ -6,7 +6,7 @@
 | Risk Level | Number of Alerts |
 | --- | --- |
 | High | 0 |
-| Medium | 0 |
+| Medium | 1 |
 | Low | 0 |
 | Informational | 4 |
 
@@ -17,6 +17,7 @@
 
 | Name | Risk Level | Number of Instances |
 | --- | --- | --- |
+| Cross-Domain Misconfiguration | Medium | 2 |
 | A Client Error response code was returned by the server | Informational | 59 |
 | Non-Storable Content | Informational | 1 |
 | Re-examine Cache-control Directives | Informational | 1 |
@@ -28,6 +29,47 @@
 ## Alert Detail
 
 
+
+### [ Cross-Domain Misconfiguration ](https://www.zaproxy.org/docs/alerts/10098/)
+
+
+
+##### Medium (Medium)
+
+### Description
+
+Web browser data loading may be possible, due to a Cross Origin Resource Sharing (CORS) misconfiguration on the web server
+
+* URL: https://akxo8jq0o9.execute-api.ap-northeast-1.amazonaws.com/api/
+  * Method: `OPTIONS`
+  * Parameter: ``
+  * Attack: ``
+  * Evidence: `Access-Control-Allow-Origin: *`
+* URL: https://akxo8jq0o9.execute-api.ap-northeast-1.amazonaws.com/api/
+  * Method: `POST`
+  * Parameter: ``
+  * Attack: ``
+  * Evidence: `Access-Control-Allow-Origin: *`
+
+Instances: 2
+
+### Solution
+
+Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).
+Configure the "Access-Control-Allow-Origin" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.
+
+### Reference
+
+
+* [ https://vulncat.fortify.com/en/detail?id=desc.config.dotnet.html5_overly_permissive_cors_policy ](https://vulncat.fortify.com/en/detail?id=desc.config.dotnet.html5_overly_permissive_cors_policy)
+
+
+#### CWE Id: [ 264 ](https://cwe.mitre.org/data/definitions/264.html)
+
+
+#### WASC Id: 14
+
+#### Source ID: 3
 
 ### [ A Client Error response code was returned by the server ](https://www.zaproxy.org/docs/alerts/100000/)
 
@@ -61,7 +103,7 @@ Raised by the 'Alert on HTTP Response Code Error' script
   * Parameter: ``
   * Attack: ``
   * Evidence: `HTTP/1.1 403`
-* URL: https://akxo8jq0o9.execute-api.ap-northeast-1.amazonaws.com/8847112444247260383
+* URL: https://akxo8jq0o9.execute-api.ap-northeast-1.amazonaws.com/8595147095150772079
   * Method: `GET`
   * Parameter: ``
   * Attack: ``
@@ -141,7 +183,7 @@ Raised by the 'Alert on HTTP Response Code Error' script
   * Parameter: ``
   * Attack: ``
   * Evidence: `HTTP/1.1 403`
-* URL: https://akxo8jq0o9.execute-api.ap-northeast-1.amazonaws.com/api/646163879264681613
+* URL: https://akxo8jq0o9.execute-api.ap-northeast-1.amazonaws.com/api/1929663216955114433
   * Method: `GET`
   * Parameter: ``
   * Attack: ``
