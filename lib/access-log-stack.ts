@@ -138,7 +138,7 @@ export class AccessLogStack extends cdk.Stack {
             "application/json": `
               #set($time = '"time": "' + \${context.requestTime} + '",')
               #set($ip = '"ip": "' + \${context.identity.sourceIp} + '",')
-              #set($data = '"data": "' + $input.json('$') + '"')
+              #set($data = '"data": ' + $input.json('$'))
               #set($body = "{\${time}\${ip}\${data}}
 ")
               {
@@ -220,55 +220,51 @@ export class AccessLogStack extends cdk.Stack {
     rateLimitFirehoseAlarm.addAlarmAction(
       new cloudwatch_action.SnsAction(topic)
     );
-    // const athenaQueryResultBucket = new s3.Bucket(
-    //   this,
-    //   "AthenaQueryResultBucket",
-    //   {
-    //     bucketName: props.athenaQueryResultBucketName,
-    //     removalPolicy: cdk.RemovalPolicy.DESTROY,
-    //   }
-    // );
 
-    // const dataCatalog = new glue.Database(this, "AccessLogDataCatalog", {
-    //   databaseName: "access_log",
-    // });
+    // Athenaのテーブルを作成する
+    new glue.Table(this, "AccessLogSourceDataGlueTable", {
+      tableName: "acess_log",
+      database: new glue.Database(this, "AccessLogDataCatalog", {
+        databaseName: "access_log",
+      }),
+      columns: [
+        {
+          name: "time",
+          type: glue.Schema.STRING,
+        },
+        {
+          name: "ip",
+          type: glue.Schema.STRING,
+        },
+        {
+          name: "data",
+          type: glue.Schema.STRING,
+        },
+      ],
+      dataFormat: glue.DataFormat.JSON,
+      bucket: bucket,
+    });
 
-    // const sourceDataGlueTable = new glue.Table(
-    //   this,
-    //   "AccessLogSourceDataGlueTable",
-    //   {
-    //     tableName: "source_data",
-    //     database: dataCatalog,
-    //     columns: [
-    //       {
-    //         name: "time",
-    //         type: glue.Schema.TIMESTAMP,
-    //       },
-    //       {
-    //         name: "ip",
-    //         type: glue.Schema.STRING,
-    //       },
-    //       {
-    //         name: "data",
-    //         type: glue.Schema.STRING,
-    //       },
-    //     ],
-    //     dataFormat: glue.DataFormat.JSON,
-    //     bucket: bucket,
-    //   }
-    // );
-
-    // const athenaWorkGroup = new athena.CfnWorkGroup(
-    //   this,
-    //   "AccessLogAthenaWorkGroup",
-    //   {
-    //     name: "access_log",
-    //     workGroupConfiguration: {
-    //       resultConfiguration: {
-    //         outputLocation: `s3://${props.athenaQueryResultBucketName}/result-data`,
-    //       },
-    //     },
-    //   }
-    // );
+    // Athena Query 結果を格納する S3 バケットを作成しワークグループを作る
+    const athenaQueryResultBucket = new s3.Bucket(
+      this,
+      "AthenaQueryResultBucket",
+      {
+        bucketName: props.athenaQueryResultBucketName,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+      }
+    );
+    const athenaWorkGroup = new athena.CfnWorkGroup(
+      this,
+      "AccessLogAthenaWorkGroup",
+      {
+        name: "access_log",
+        workGroupConfiguration: {
+          resultConfiguration: {
+            outputLocation: `s3://${props.athenaQueryResultBucketName}/result-data`,
+          },
+        },
+      }
+    );
   }
 }

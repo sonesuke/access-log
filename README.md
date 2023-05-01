@@ -5,9 +5,9 @@ AWS を使用したセルフホストのアクセス解析システム
 取得できるログの例
 
 ```{json}
-{"time": "30/Apr/2023:11:01:35 +0000","ip": "xxx.xxx.xxx.xxx","data": "{"type":"page","properties":{"title":"","url":"https://example.com/index.html","path":"/index.html","hash":"","search":"","width":647,"height":1039},"options":{},"userId":"user-id-xyz","anonymousId":"e8a602e8-9688-4c04-8e1f-06b7e1e95658","meta":{"rid":"9eb11317-53f6-46f2-8a73-6e3b0259b8d0","ts":1682852495299,"hasCallback":true}}"}
-{"time": "30/Apr/2023:11:01:46 +0000","ip": "xxx.xxx.xxx.xxx","data": "{"type":"page","properties":{"title":"","url":"https://example.com/index.html","path":"/index.html","hash":"","search":"","width":647,"height":1039},"options":{},"userId":"user-id-xyz","anonymousId":"e8a602e8-9688-4c04-8e1f-06b7e1e95658","meta":{"rid":"38884f2e-9108-4440-9d8f-0c6a2c08da72","ts":1682852506092,"hasCallback":true}}"}
-{"time": "30/Apr/2023:11:01:47 +0000","ip": "xxx.xxx.xxx.xxx","data": "{"type":"page","properties":{"title":"","url":"https://example.com/index.html","path":"/index.html","hash":"","search":"","width":647,"height":1039},"options":{},"userId":"user-id-xyz","anonymousId":"e8a602e8-9688-4c04-8e1f-06b7e1e95658","meta":{"rid":"438bf7d1-32f9-4481-ba62-14ad5f0b18ee","ts":1682852507411,"hasCallback":true}}"}
+{"time": "30/Apr/2023:11:01:35 +0000","ip": "xxx.xxx.xxx.xxx","data": {"type":"page","properties":{"title":"","url":"https://example.com/index.html","path":"/index.html","hash":"","search":"","width":647,"height":1039},"options":{},"userId":"user-id-xyz","anonymousId":"e8a602e8-9688-4c04-8e1f-06b7e1e95658","meta":{"rid":"9eb11317-53f6-46f2-8a73-6e3b0259b8d0","ts":1682852495299,"hasCallback":true}}}
+{"time": "30/Apr/2023:11:01:46 +0000","ip": "xxx.xxx.xxx.xxx","data": {"type":"page","properties":{"title":"","url":"https://example.com/index.html","path":"/index.html","hash":"","search":"","width":647,"height":1039},"options":{},"userId":"user-id-xyz","anonymousId":"e8a602e8-9688-4c04-8e1f-06b7e1e95658","meta":{"rid":"38884f2e-9108-4440-9d8f-0c6a2c08da72","ts":1682852506092,"hasCallback":true}}}
+{"time": "30/Apr/2023:11:01:47 +0000","ip": "xxx.xxx.xxx.xxx","data": {"type":"page","properties":{"title":"","url":"https://example.com/index.html","path":"/index.html","hash":"","search":"","width":647,"height":1039},"options":{},"userId":"user-id-xyz","anonymousId":"e8a602e8-9688-4c04-8e1f-06b7e1e95658","meta":{"rid":"438bf7d1-32f9-4481-ba62-14ad5f0b18ee","ts":1682852507411,"hasCallback":true}}}
 ```
 
 ## 設計
@@ -79,7 +79,12 @@ new AccessLogStack(app, "AccessLogStack", {
 
 ### アクセス解析データの取得
 
-mada
+AWS AThenaで、アクセス解析データを取得する。
+ただし、ワークグループは、`access_log` とする。
+
+```{sql}
+SELECT * FROM "access_log"."acess_log" limit 10;
+```
 
 ## Ops
 
@@ -170,13 +175,13 @@ docker compose run api-scan
 
 以下より、システムの可用性は、99.7%程度とする。
 
-### API Gateway
+### API Gatewayの可用性
 
 99.95%
 
 [出典](https://aws.amazon.com/api-gateway/sla/?did=sla_card&trk=sla_card)
 
-### Kinesis Firehose
+### Kinesis Firehoseの可用性
 
 99.9%
 
@@ -187,26 +192,6 @@ docker compose run api-scan
 99.9%
 
 [出典](https://aws.amazon.com/jp/s3/sla/?did=sla_card&trk=sla_card)
-
-## クォータ
-
-以下、東京リージョン(ap-northeast-1)でのクォータの例。
-特にクォータを引き上げずとも、1000 リクスト/秒までは可能。
-
-### API Gateway
-
-アカウント・リージョンごとに以下のクォータがある。
-
-- 10K リクエスト/秒
-
-[出典](https://docs.aws.amazon.com/ja_jp/apigateway/latest/developerguide/limits.html)
-
-### Kinesis Firehose
-
-- レコードサイズ: 100KiB
-- Direct PUT: 100k レコード/秒, 1k リクエスト/秒, 1 Mib/秒
-
-[出典](https://docs.aws.amazon.com/firehose/latest/dev/limits.html)
 
 ## コスト計算
 
@@ -226,3 +211,23 @@ docker compose run api-scan
 [API Gateway の料金](https://aws.amazon.com/jp/api-gateway/pricing/)
 [Kinesis Firehose の料金](https://aws.amazon.com/jp/kinesis/data-firehose/pricing/)
 [S3 の料金](https://aws.amazon.com/jp/s3/pricing/)
+
+## クォータ
+
+以下、東京リージョン(ap-northeast-1)でのクォータの例。
+特にクォータを引き上げずとも、1000 リクスト/秒までは可能。
+
+### API Gatewayのクォータ
+
+アカウント・リージョンごとに以下のクォータがある。
+
+- 10K リクエスト/秒
+
+[出典](https://docs.aws.amazon.com/ja_jp/apigateway/latest/developerguide/limits.html)
+
+### Kinesis Firehoseのクォータ
+
+- レコードサイズ: 100KiB
+- Direct PUT: 100k レコード/秒, 1k リクエスト/秒, 1 Mib/秒
+
+[出典](https://docs.aws.amazon.com/firehose/latest/dev/limits.html)
